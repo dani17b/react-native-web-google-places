@@ -1,0 +1,67 @@
+{
+  "name": "react-native-web-google-places",
+  "version": "0.1.0",
+  "description": "React for Web implementation of react-native-google-places",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dani17b/react-native-web-google-places"
+  },
+  "author": {
+    "name": "Daniel Turiño",
+    "email": "",
+    "url": "https://github.com/dani17b/react-native-web-google-places"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "react-native",
+    "react-native-web",
+    "react-native-web-google-places"
+  ],
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "precommit": "lint-staged",
+    "commit": "git-cz",
+    "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
+    "deploy-docs": "ts-node tools/gh-pages-publish",
+    "report-coverage": "cat ./coverage/lcov.info | coveralls && codecov",
+    "semantic-release": "semantic-release",
+    "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "babel": {
+    "presets": [
+      "react-native"
+    ]
+  },
+  "release": {
+    "branch": "master",
+    "dryRun": false,
+    "debug": true
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-react-native": "^4.0.0",
+    "prettier": "^1.7.3",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "react-native-web": "^0.1.1",
+    "semantic-release": "^15.12.5",
+    "webpack": "^3.6.0",
+    "typescript": "^3.2.2"
+  },
+  "peerDependencies": {
+    "react-native-web": "*"
+  },
+  "dependencies": {
+    "tslint": "^5.11.0",
+    "react-google-maps": "^7.3.0",
+    "react-places-autocomplete" : "7.2.0"
+  }
+}
