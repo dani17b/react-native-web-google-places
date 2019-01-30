@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { withGoogleMap, GoogleMap } from 'react-google-maps';
 import PlacesAutocomplete, {
   geocodeByAddress,
@@ -18,7 +18,8 @@ class RNGooglePlaces extends Component {
         lat: typeof region != "undefined" ? region.latitude : 0, 
         lng: typeof region != "undefined" ? region.longitude : 0 
       },
-      address: ''
+      address: '',
+      place : null
     };
   }
 
@@ -40,6 +41,28 @@ class RNGooglePlaces extends Component {
       .catch(error => console.error('Error', error));
   };
 
+  setSuggestion(suggestion){
+    this.handleSelect(suggestion.description);
+    this.setState({ address : suggestion.description });
+    this.setState({
+      place : {
+        id : suggestion.placeId,
+        name : suggestion.formattedSuggestion.mainText,
+        address : suggestion.formattedSuggestion.secondaryText
+      }
+    })
+  }
+
+  selectPlace(){
+    this.props.onSelectPlace({
+      ...this.state.place,
+      location : {
+          lat : this.state.center.lat,
+          lng : this.state.center.lng
+      }
+    });
+  }
+
   render() {
     if (!this.state.center)
       return (
@@ -50,7 +73,7 @@ class RNGooglePlaces extends Component {
 
       // https://github.com/hibiken/react-places-autocomplete
     return (
-      <View style={{flex : 1}}>
+      <View style={{flex : 1, fontSize : "smaller",fontFamily : 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif'}}>
         <GoogleMapContainer
           handleMapMounted={this.handleMapMounted}
           containerElement={<div style={{ flex : 1 }} />}
@@ -58,12 +81,21 @@ class RNGooglePlaces extends Component {
           center={this.state.center}
           onDragStart={!!this.props.onRegionChange && this.props.onRegionChange}
           onDragEnd={this.onDragEnd}
-          defaultZoom={20}
+          defaultZoom={18}
           onClick={this.props.onPress}
+          defaultOptions={{
+            streetViewControl: false,
+            scaleControl: false,
+            mapTypeControl: false,
+            panControl: false,
+            //zoomControl: false,
+            rotateControl: false,
+            fullscreenControl: false
+          }}
         >
           {this.props.children}
         </GoogleMapContainer>
-        <View style={{width : "100%", position : "absolute", top : 15, left : 0, height: 45,paddingLeft: 15,paddingRight : 15}}>
+        <View style={{width : "100%", position : "absolute", top : 48, left : 0, height: 45,paddingLeft: 15,paddingRight : 15}}>
           <PlacesAutocomplete
             value={this.state.address}
             onChange={this.handleChange}
@@ -94,6 +126,7 @@ class RNGooglePlaces extends Component {
                         className,
                         style,
                       })}
+                      onClick={() => this.setSuggestion(suggestion)}
                     >
                       <div style={{width : "100%", height : 28, marginTop : 2, marginBottom : 2, fontWeight : "bold"}}>{suggestion.formattedSuggestion.mainText}</div>
                       <div style={{width : "100%", height : 28, marginTop : 2, marginBottom : 2}}>{suggestion.formattedSuggestion.secondaryText}</div>
@@ -105,9 +138,22 @@ class RNGooglePlaces extends Component {
           )}
           </PlacesAutocomplete>
         </View>
-        <View style={{width : "100%", height : 64, backgroundColor : "green"}}>
-            <span>TODO poner un marker en center,Aqui poner de inicio la localizacion actual, o una ver seleccionado el lugarl el nombre del lugar, y al lado un boton aceptar</span>
-        </View>
+        <TouchableOpacity 
+          style={{width : "100%", height : 64, position : "relative", backgroundColor : "#D7D7D7", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
+          onPress={this.selectPlace.bind(this)}
+        >
+          <img src={require("./img/pin.png")} style={{width: 32, height: 32}}/>
+          {this.state.place == null &&
+            <span style={{color : "white"}}>Seleccionar este lugar</span>
+          }
+          {this.state.place != null && 
+            <div style={{marginLeft : 5}}>
+              <span style={{display: "block",color: "white",fontWeight: "bold"}}>{this.state.place.name}</span>
+              <span style={{paddingTop: 3.5, display: "block",color: "white"}}>{this.state.place.address}</span>
+            </div>
+          }
+          <img src={require("./img/next.png")} style={{width: 32, height: 32, position : "absolute", right : 7.5}}/>
+        </TouchableOpacity>
       </View>
     );
   }
