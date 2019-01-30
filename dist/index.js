@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import { withGoogleMap, GoogleMap } from 'react-google-maps';
+import { withGoogleMap, GoogleMap, Marker } from 'react-google-maps';
 import PlacesAutocomplete, {
   geocodeByAddress,
   getLatLng,
@@ -93,7 +93,10 @@ class RNGooglePlaces extends Component {
             fullscreenControl: false
           }}
         >
-          {this.props.children}
+          <Marker
+            draggable={false}
+            position={this.state.center}
+          />
         </GoogleMapContainer>
         <View style={{width : "100%", position : "absolute", top : 48, left : 0, height: 45,paddingLeft: 15,paddingRight : 15}}>
           <PlacesAutocomplete
@@ -142,17 +145,17 @@ class RNGooglePlaces extends Component {
           style={{width : "100%", height : 64, position : "relative", backgroundColor : "#D7D7D7", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
           onPress={this.selectPlace.bind(this)}
         >
-          <img src={require("./img/pin.png")} style={{width: 32, height: 32}}/>
+          <img src={require("./img/pin.png")} style={{width: 20, height: 20}}/>
           {this.state.place == null &&
-            <span style={{color : "white"}}>Seleccionar este lugar</span>
+            <span style={{marginLeft : 7.5,color : "white"}}>Seleccionar este lugar</span>
           }
           {this.state.place != null && 
-            <div style={{marginLeft : 5}}>
+            <div style={{marginLeft : 7.5}}>
               <span style={{display: "block",color: "white",fontWeight: "bold"}}>{this.state.place.name}</span>
               <span style={{paddingTop: 3.5, display: "block",color: "white"}}>{this.state.place.address}</span>
             </div>
           }
-          <img src={require("./img/next.png")} style={{width: 32, height: 32, position : "absolute", right : 7.5}}/>
+          <img src={require("./img/next.png")} style={{width: 20, height: 20, position : "absolute", right : 7.5}}/>
         </TouchableOpacity>
       </View>
     );
