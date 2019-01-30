@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import { withGoogleMap, GoogleMap } from 'react-google-maps';
+import { withGoogleMap, GoogleMap, Marker } from 'react-google-maps';
 import PlacesAutocomplete, {
   geocodeByAddress,
   getLatLng,
@@ -50,7 +50,9 @@ class RNGooglePlaces extends Component {
         name : suggestion.formattedSuggestion.mainText,
         address : suggestion.formattedSuggestion.secondaryText
       }
-    })
+    });
+
+    this.refs.autocomplete.handleInputOnBlur();
   }
 
   selectPlace(){
@@ -66,7 +68,7 @@ class RNGooglePlaces extends Component {
   render() {
     if (!this.state.center)
       return (
-        <View style={{backgroundColor : "blue"}}>
+        <View>
           <ActivityIndicator />
         </View>
       );
@@ -81,7 +83,7 @@ class RNGooglePlaces extends Component {
           center={this.state.center}
           onDragStart={!!this.props.onRegionChange && this.props.onRegionChange}
           onDragEnd={this.onDragEnd}
-          defaultZoom={18}
+          defaultZoom={16}
           onClick={this.props.onPress}
           defaultOptions={{
             streetViewControl: false,
@@ -93,22 +95,31 @@ class RNGooglePlaces extends Component {
             fullscreenControl: false
           }}
         >
-          {this.props.children}
+          {this.state.place != null &&
+            <Marker
+              draggable={false}
+              position={this.state.center}
+            />
+          }
         </GoogleMapContainer>
         <View style={{width : "100%", position : "absolute", top : 48, left : 0, height: 45,paddingLeft: 15,paddingRight : 15}}>
           <PlacesAutocomplete
             value={this.state.address}
             onChange={this.handleChange}
             onSelect={this.handleSelect}
+            ref="autocomplete"
+            searchOptions={{
+              types: ['establishment']
+            }}
           >
           {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
             <div>
               <input
                 {...getInputProps({
-                  placeholder: 'Search Places ...',
+                  placeholder: this.props.searchText,
                   className: 'location-search-input',
                 })}
-                style={{width : "100%", height : 43, border: "none",borderRadius :  4}}
+                style={{width : "calc(100% - 15px)", height : 43, border: "none",borderRadius : 4, paddingLeft : 15}}
               />
               <div className="autocomplete-dropdown-container">
                 {loading && <div>Loading...</div>}
@@ -118,8 +129,8 @@ class RNGooglePlaces extends Component {
                     : 'suggestion-item';
                   // inline style for demonstration purpose
                   const style = suggestion.active
-                    ? { backgroundColor: 'white', cursor: 'pointer', width : "100%" }
-                    : { backgroundColor: 'white', cursor: 'pointer', width : "100%" };
+                    ? { backgroundColor: 'white', cursor: 'pointer', width : "calc(100% - 15px)", paddingLeft : 15 }
+                    : { backgroundColor: 'white', cursor: 'pointer', width : "calc(100% - 15px)", paddingLeft : 15 };
                   return (
                     <div
                       {...getSuggestionItemProps(suggestion, {
@@ -128,7 +139,7 @@ class RNGooglePlaces extends Component {
                       })}
                       onClick={() => this.setSuggestion(suggestion)}
                     >
-                      <div style={{width : "100%", height : 28, marginTop : 2, marginBottom : 2, fontWeight : "bold"}}>{suggestion.formattedSuggestion.mainText}</div>
+                      <div style={{width : "100%", height : 28, paddingTop : 7.5, marginBottom : 2, fontWeight : "bold"}}>{suggestion.formattedSuggestion.mainText}</div>
                       <div style={{width : "100%", height : 28, marginTop : 2, marginBottom : 2}}>{suggestion.formattedSuggestion.secondaryText}</div>
                     </div>
                   );
@@ -138,22 +149,21 @@ class RNGooglePlaces extends Component {
           )}
           </PlacesAutocomplete>
         </View>
-        <TouchableOpacity 
-          style={{width : "100%", height : 64, position : "relative", backgroundColor : "#D7D7D7", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
-          onPress={this.selectPlace.bind(this)}
-        >
-          <img src={require("./img/pin.png")} style={{width: 32, height: 32}}/>
-          {this.state.place == null &&
-            <span style={{color : "white"}}>Seleccionar este lugar</span>
-          }
-          {this.state.place != null && 
-            <div style={{marginLeft : 5}}>
-              <span style={{display: "block",color: "white",fontWeight: "bold"}}>{this.state.place.name}</span>
-              <span style={{paddingTop: 3.5, display: "block",color: "white"}}>{this.state.place.address}</span>
-            </div>
-          }
-          <img src={require("./img/next.png")} style={{width: 32, height: 32, position : "absolute", right : 7.5}}/>
-        </TouchableOpacity>
+        {this.state.place != null &&
+          <TouchableOpacity 
+            style={{width : "100%", height : 64, position : "relative", backgroundColor : "#D7D7D7", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
+            onPress={this.selectPlace.bind(this)}
+          >
+            <img src={require("./img/pin.png")} style={{width: 20, height: 20}}/>
+            {this.state.place != null && 
+              <div style={{marginLeft : 7.5}}>
+                <span style={{display: "block",color: "white",fontWeight: "bold"}}>{this.state.place.name}</span>
+                <span style={{paddingTop: 3.5, display: "block",color: "white"}}>{this.state.place.address}</span>
+              </div>
+            }
+            <img src={require("./img/next.png")} style={{width: 20, height: 20, position : "absolute", right : 7.5}}/>
+          </TouchableOpacity> 
+        }
       </View>
     );
   }
