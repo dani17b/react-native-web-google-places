@@ -3,7 +3,7 @@ import { View, ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-nat
 import { withGoogleMap, GoogleMap, Marker } from 'react-google-maps';
 import PlacesAutocomplete, {
   geocodeByAddress,
-  getLatLng,
+  getLatLng
 } from 'react-places-autocomplete';
 
 const GoogleMapContainer = withGoogleMap(props => <GoogleMap {...props} ref={props.handleMapMounted} />);
@@ -32,19 +32,24 @@ class RNGooglePlaces extends Component {
   handleSelect = address => {
     geocodeByAddress(address)
       .then(results => getLatLng(results[0]))
-      .then(latLng => this.setState({
-        center: { 
-          lat: latLng.lat, 
-          lng: latLng.lng 
-        }
-      }))
+      .then(latLng => {
+          this.setState({
+            center: { 
+              lat: latLng.lat, 
+              lng: latLng.lng 
+            }
+          })
+      })
       .catch(error => console.error('Error', error));
   };
 
-  setSuggestion(suggestion){
-    this.handleSelect(suggestion.description);
-    this.setState({ address : suggestion.description });
-    this.setState({
+  setSuggestion(suggestion, mode){
+    if(mode == "autocomplete"){
+      this.handleSelect(suggestion.description);
+    }
+    
+    this.setState({ 
+      address : suggestion.description,
       place : {
         id : suggestion.placeId,
         name : suggestion.formattedSuggestion.mainText,
@@ -63,6 +68,40 @@ class RNGooglePlaces extends Component {
           lng : this.state.center.lng
       }
     });
+  }
+
+  onPress(place){
+    if(typeof place.placeId != "undefined"){
+      let _this = this;
+
+      var map = new google.maps.Map(this.map);
+
+      var request = {
+        placeId: place.placeId,
+        fields: ['name', 'formatted_address'],
+      };
+
+      var service = new google.maps.places.PlacesService(map);
+
+      service.getDetails(request, function(results, status) {
+        
+        _this.setState({
+          center: { 
+            lat: place.latLng.lat(), 
+            lng: place.latLng.lng() 
+          }
+        }) 
+       
+        _this.setSuggestion({
+          description : results.name,
+          placeId : place.placeId,
+          formattedSuggestion : {
+            mainText : results.name,
+            secondaryText : results.formatted_address
+          }
+        }, "click")
+      });
+    }
   }
 
   render() {
@@ -84,7 +123,7 @@ class RNGooglePlaces extends Component {
           onDragStart={!!this.props.onRegionChange && this.props.onRegionChange}
           onDragEnd={this.onDragEnd}
           defaultZoom={16}
-          onClick={this.props.onPress}
+          onClick={this.onPress.bind(this)}
           defaultOptions={{
             streetViewControl: false,
             scaleControl: false,
@@ -106,10 +145,11 @@ class RNGooglePlaces extends Component {
           <PlacesAutocomplete
             value={this.state.address}
             onChange={this.handleChange}
-            onSelect={this.handleSelect}
+            onSelect={(data) => this.handleSelect(data, true)}
             ref="autocomplete"
             searchOptions={{
-              types: ['establishment']
+              location: new google.maps.LatLng(this.state.center.lat, this.state.center.lng),
+              radius: 20000 * 1000
             }}
           >
           {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
@@ -137,7 +177,7 @@ class RNGooglePlaces extends Component {
                         className,
                         style,
                       })}
-                      onClick={() => this.setSuggestion(suggestion)}
+                      onClick={() => this.setSuggestion(suggestion, "autocomplete")}
                     >
                       <div style={{width : "100%", height : 28, paddingTop : 7.5, marginBottom : 2, fontWeight : "bold"}}>{suggestion.formattedSuggestion.mainText}</div>
                       <div style={{width : "100%", height : 28, marginTop : 2, marginBottom : 2}}>{suggestion.formattedSuggestion.secondaryText}</div>
@@ -151,16 +191,14 @@ class RNGooglePlaces extends Component {
         </View>
         {this.state.place != null &&
           <TouchableOpacity 
-            style={{width : "100%", height : 64, position : "relative", backgroundColor : "#D7D7D7", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
+            style={{width : "100%", height : 64, position : "relative", backgroundColor : "#1abc9c", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
             onPress={this.selectPlace.bind(this)}
           >
             <img src={require("./img/pin.png")} style={{width: 20, height: 20}}/>
-            {this.state.place != null && 
-              <div style={{marginLeft : 7.5}}>
-                <span style={{display: "block",color: "white",fontWeight: "bold"}}>{this.state.place.name}</span>
-                <span style={{paddingTop: 3.5, display: "block",color: "white"}}>{this.state.place.address}</span>
-              </div>
-            }
+            <div style={{marginLeft : 7.5}}>
+              <span style={{display: "block",color: "white",fontWeight: "bold"}}>{this.state.place.name}</span>
+              <span style={{paddingTop: 3.5, display: "block",color: "white"}}>{this.state.place.address}</span>
+            </div>
             <img src={require("./img/next.png")} style={{width: 20, height: 20, position : "absolute", right : 7.5}}/>
           </TouchableOpacity> 
         }
