@@ -193,6 +193,7 @@ class RNGooglePlaces extends Component {
           <TouchableOpacity 
             style={{width : "100%", height : 64, position : "relative", backgroundColor : "#1abc9c", display: "flex", alignItems: "center", flexDirection : "row", paddingRight: 7.5, paddingLeft: 7.5}} 
             onPress={this.selectPlace.bind(this)}
+            testID="selectPlace"
           >
             <img src={require("./img/pin.png")} style={{width: 20, height: 20}}/>
             <div style={{marginLeft : 7.5}}>
